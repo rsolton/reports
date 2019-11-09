@@ -23,13 +23,16 @@ For example:
 curl http://hackeronetest.com/reports
 
 ## API Resources
-* GET /reports
-* GET /reports/{id}
-* POST /reports
-* PUT /reports/{id}
-* DELETE /reports/{id}
+| Method and Resource | Description |
+| ----------- | ----------- |
+| GET /status | Get the server status.  Also used a health check for the load balancer. |
+| GET /reports | Get a list of all reports or query for specific reports by title and / or description. |
+| GET /reports/{id} | Get a specific report by its ID. |
+| POST /reports | Create a new report. |
+| PUT /reports/{id} | Modify an existing report. |
+| DELETE /reports/{id} | Delete an existing report. |
 
-## Sample Remote cURL requests
+## Sample Remote cURL Requests
 ### Get Service Status
 curl http://hackeronetest.com/status
 
@@ -61,7 +64,7 @@ curl http://hackeronetest.com/reports/2 -X PUT -d '{"title": "Modified Descripti
 ### Delete an Existing Report
 curl http://hackeronetest.com/reports/3 -X DELETE
 
-## Sample Local cURL requests
+## Sample Local cURL Requests
 ### Get Service Status
 curl http://localhost:9000/status
 
