@@ -23,14 +23,14 @@ For example:
 curl http://hackeronetest.com/reports
 
 ## API Resources
-| Method and Resource | Description |
-| ----------- | ----------- |
-| GET /status | Get the server status.  Also used a health check for the load balancer. |
-| GET /reports | Get a list of all reports or query for specific reports by title and / or description. |
-| GET /reports/{id} | Get a specific report by its ID. |
-| POST /reports | Create a new report. |
-| PUT /reports/{id} | Modify an existing report. |
-| DELETE /reports/{id} | Delete an existing report. |
+| Method and Resource| Description | Required HTTP Header | 
+| ----------- | ----------- | ----------- |
+| GET /status | Get the server status.  Also used as a health check for the load balancer. | | 
+| GET /reports | Get a list of all reports or query for specific reports by **title** and / or **description**. | |
+| GET /reports/{id} |  Get a specific report by its unique ID. | |
+| POST /reports | Create a new report. | Content-Type: application/json |
+| PUT /reports/{id} | Modify an existing report. | Content-Type: application/json |
+| DELETE /reports/{id} | Delete an existing report. | |
 
 ## Sample Remote cURL Requests
 ### Get Service Status
