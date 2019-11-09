@@ -3,7 +3,7 @@
 ## Running Locally
 This application runs in node, version 12.9.0 or greater.
 
-Install node and run then npm install:
+Install node and then run npm install:
 ```aidl
 npm install
 ```
