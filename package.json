@@ -1,0 +1,16 @@
+{
+  "name": "hackerone",
+  "version": "1.0.0",
+  "description": "Hackerone REST API Coding Challenge",
+  "main": "server.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mocha": "^6.2.2"
+  }
+}

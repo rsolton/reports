@@ -1,0 +1,12 @@
+{
+  "services": {
+    "reports": {
+      "streamed": true,
+      "local": {
+        "scheme": "http",
+        "host": "localhost",
+        "port": 9000
+      }
+    }
+  }
+}
