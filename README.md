@@ -36,6 +36,19 @@ curl http://hackeronetest.com/status
 ### List all reports 
 curl http://hackeronetest.com/reports
 
+### List all reports filtered by description (partial match)
+
+**Example 1** (returns one result):
+curl http://hackeronetest.com/reports?description=lawyer
+
+**Example 2** (returns two results):
+curl http://hackeronetest.com/reports?description=law
+
+### List all reports filtered by title (exact match)
+curl 'http://hackeronetest.com/reports?title=My+Dog+Rose'
+
+Note: You can filter by both **description** and **title**.
+
 ### Get One Report
 curl http://hackeronetest.com/reports/2
 
@@ -54,6 +67,18 @@ curl http://localhost:9000/status
 
 ### List all reports 
 curl http://localhost:9000/reports
+
+### List all reports filtered by description (partial match)
+**Example 1** (returns one result):
+curl http://localhost:9000/reports?description=lawyer
+
+**Example 2** (returns two results):
+curl http://localhost:9000/reports?description=law
+
+### List all reports filtered by title (exact match)
+curl 'http://localhost:9000/reports?title=My+Dog+Rose'
+
+Note: You can filter by both **description** and **title**.
 
 ### Get One Report
 curl http://localhost:9000/reports/2

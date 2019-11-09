@@ -71,7 +71,7 @@ class ReportsService {
         });
 
         appServiceReports.get('/reports', (req, res) => {
-            const response = this.getReports().then(function (reports) {
+            const response = this.getReports(req.query).then(function (reports) {
                 res.status(status.OK).json(reports);
             }).catch(function (error) {
                 res.writeHead(error.code, {'Content-Type': APPLICATION_JSON});
@@ -119,13 +119,26 @@ class ReportsService {
     /**
      * Implements report querying for a report list,
      *
+     * @param {object} query An object containing any optionally specified query parameters
      * @return {object} promise The asynchronous promise that will be fulfilled up completion of the query
      */
-    getReports() {
+    getReports(query) {
         const promise = new Promise(
             (resolve, reject) => {
                 if (mockResponse) {
                     let response = mockData.mockReports;
+                    if (query) {
+                        if (query.title) {
+                            response = mockData.mockReports.filter( (item) => {
+                               return(item.title === query.title);
+                            });
+                        }
+                        if (query.description) {
+                            response = mockData.mockReports.filter( (item) => {
+                                return(item.description.includes(query.description));
+                            });
+                        }
+                    }
                     resolve(response);
                 } else {
                     // TODO: Real database implementation goes here
