@@ -2,15 +2,18 @@
 
 const express = require('express');
 const appServiceReports = express();
+const mysql = require('mysql');
 const status = require('http-status');
 
 const config = require('./config/configuration.json');
 const mockData = require('./mock-data.js');
+const security = require('./security.js');
+const sqlUtils = require('./sql-utils.js');
 const appServiceReportsName = 'Reports';
 const reportsServiceRoot = {service: appServiceReportsName + ' Service'};
 const serviceReportsPort = config.services.reports.local.port;
 const APPLICATION_JSON = 'application/json';
-const mockResponse = true;
+let mockResponse = false;
 let startedTimestamp;
 
 class ReportsService {
@@ -47,6 +50,14 @@ class ReportsService {
     init() {
         this.configureExpress();
         this.configureRoutes();
+    }
+
+    /**
+     * Configure service to use mock data, when passed value is true, or real data, when passed value is false.
+     * @param {boolean} value When true, mock data is used.  Otherwise real DB data is used
+     */
+    setMockResponse(value) {
+        mockResponse = value ? true : false;
     }
 
     /**
@@ -141,7 +152,34 @@ class ReportsService {
                     }
                     resolve(response);
                 } else {
-                    // TODO: Real database implementation goes here
+                    const connection = this.dbConnect();
+                    let whereNameValues;
+                    if (query) {
+                        if (query.title) {
+                            whereNameValues = [];
+                            whereNameValues.push({name: 'title', value: query.title});
+                        }
+                        if (query.description) {
+                            if (!whereNameValues) {
+                                whereNameValues = [];
+                            }
+                            whereNameValues.push({name: 'description', value: query.description, like: true});
+                        }
+                    }
+                    const sqlStatement = sqlUtils.sqlSimpleQueryBuilder(connection,
+                        config.databaseReports.tables.report.name,
+                        config.databaseReports.tables.report.columns,
+                        whereNameValues);
+                    connection.query(sqlStatement, (err, rows, fields) => {
+                        if (err) {
+                            console.log("Error", err);
+                            reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR],
+                                dbCode: err.code, dbMessage: err.message});
+                        } else {
+                            resolve(rows);
+                        }
+                    });
+                    connection.end();
                 }
             }
         );
@@ -173,7 +211,28 @@ class ReportsService {
                     }
                     resolve(response);
                 } else {
-                    // TODO: Real database implementation goes here
+                    const connection = this.dbConnect();
+                    const sqlStatement = sqlUtils.sqlSimpleQueryBuilder(connection,
+                        config.databaseReports.tables.report.name,
+                        config.databaseReports.tables.report.columns,
+                        [{name: 'id', value: id}]);
+                    connection.query(sqlStatement, (err, rows, fields) => {
+                        if (err) {
+                            console.log("Error", err);
+                            reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR],
+                                dbCode: err.code, dbMessage: err.message});
+                        } else {
+                            if (rows.length === 1) {
+                                resolve(rows[0]);
+                            } else if (rows.length === 0) {
+                                reject({'code': status.NOT_FOUND, 'message': status[status.NOT_FOUND]});
+                            } else { // more thane one row? - NOT GOOD! (and not really possible since id is a primary key)
+                                reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR]});
+                            }
+                            resolve(rows);
+                        }
+                    });
+                    connection.end();
                 }
             }
         );
@@ -211,7 +270,29 @@ class ReportsService {
                         mockData.mockReports.push(report);
                         resolve(report);
                     } else {
-                        // TODO: Real database implementation goes here
+                        const connection = this.dbConnect();
+                        const sqlStatement = sqlUtils.sqlSimpleInsertBuilder(connection,
+                            config.databaseReports.tables.report.name,
+                            [{name: 'description', value: body.description}, {name: 'title', value: body.title},
+                                {name: 'created_by', value: body.createdBy}]);
+                        connection.query(sqlStatement, (err, result, fields) => {
+                            if (err) {
+                                console.log("Error", err);
+                                reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR],
+                                    dbCode: err.code, dbMessage: err.message});
+                            } else {
+                                if (result.affectedRows === 1) {
+                                    let response = {
+                                        id: result.insertId
+                                    };
+                                    resolve(response);
+                                } else {
+                                    reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR]});
+                                }
+
+                            }
+                        });
+                        connection.end();
                     }
                 }
             });
@@ -251,13 +332,53 @@ class ReportsService {
                             foundItem.description = body.description;
                             foundItem.lastModifiedBy = body.lastModifiedBy; // Note: in a real implementation, lastModifiedBy would be derived from the active session and not explicity passed
                             foundItem.lastModifiedAt = new Date();
+                            foundItem.affectedRows = 1;
                             resolve(foundItem);
                         }
                     } else {
                         reject({'code': status.NOT_FOUND, 'message': status[status.NOT_FOUND]});
                     }
                 } else {
-                    // TODO: Real database implementation goes here
+                    const violations = this.validateInput(body, false);
+                    if (violations.length > 0) {
+                        reject({
+                            'code': status.BAD_REQUEST,
+                            'message': status[status.BAD_REQUEST],
+                            description: violations.join(', ')
+                        });
+                    } else {
+                        const connection = this.dbConnect();
+                        const sqlStatement = sqlUtils.sqlSimpleUpdateBuilder(connection,
+                            config.databaseReports.tables.report.name,
+                            [{name: 'description', value: body.description}, {name: 'title', value: body.title},
+                                {name: 'last_modified_by', value: body.lastModifiedBy}], {name: 'id', value: id});
+                        connection.query(sqlStatement, (err, result, fields) => {
+                            if (err) {
+                                console.log("Error", err);
+                                reject({
+                                    'code': status.INTERNAL_SERVER_ERROR,
+                                    'message': status[status.INTERNAL_SERVER_ERROR],
+                                    dbCode: err.code,
+                                    dbMessage: err.message
+                                });
+                            } else {
+                                if (result.affectedRows === 1) {
+                                    let response = {
+                                        id: id,
+                                        affectedRows: result.affectedRows
+                                    };
+                                    resolve(response);
+                                } else {
+                                    reject({
+                                        'code': status.NOT_FOUND,
+                                        'message': status[status.NOT_FOUND]
+                                    });
+                                }
+
+                            }
+                        });
+                        connection.end();
+                    }
                 }
             });
 
@@ -289,8 +410,27 @@ class ReportsService {
                         reject({'code': status.NOT_FOUND, 'message': status[status.NOT_FOUND]});
                     }
                 } else {
-                    // TODO: Real database implementation goes here
-                }
+                    const connection = this.dbConnect();
+                    const sqlStatement = sqlUtils.sqlSimpleDeleteBuilder(connection,
+                        config.databaseReports.tables.report.name,{name: 'id', value: id});
+                    connection.query(sqlStatement, (err, result, fields) => {
+                        if (err) {
+                            console.log("Error", err);
+                            reject({'code' : status.INTERNAL_SERVER_ERROR, 'message': status[status.INTERNAL_SERVER_ERROR], dbCode: err.code, dbMessage: err.message});
+                        } else {
+                            if (result.affectedRows === 1) {
+                                let response = {
+                                    id: id,
+                                    affectedRows: result.affectedRows
+                                };
+                                resolve(response);
+                            } else {
+                                reject({'code' : status.NOT_FOUND, 'message': status[status.NOT_FOUND]});
+                            }
+
+                        }
+                    });
+                    connection.end();                }
             });
 
         return (promise);
@@ -314,6 +454,19 @@ class ReportsService {
             }
         });
         return (violations);
+    }
+
+    dbConnect() {
+        const decryptedPassword = security.decrypt(config.databaseReports.password);
+
+        var connection = mysql.createConnection({
+            host: config.databaseReports.host,
+            user: config.databaseReports.user,
+            password: decryptedPassword,
+            database: config.databaseReports.database
+        });
+        connection.connect();
+        return(connection);
     }
 }
 

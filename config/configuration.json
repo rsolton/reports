@@ -1,12 +1,32 @@
 {
   "services": {
     "reports": {
-      "streamed": true,
       "local": {
         "scheme": "http",
         "host": "localhost",
         "port": 9000
       }
     }
-  }
+  },
+  "databaseReports": {
+    "host": "db.hackeronetest.com",
+    "user": "hackeronetest",
+    "password": "5m2/KDbquK1DGZNE6Gncc2oyi9ZVrxs7R/gDypgp2Zw=",
+    "database": "reports",
+    "tables": {
+      "report": {
+        "name": "report",
+        "columns": [
+          {"name":  "id", "as":  "id"},
+          {"name":  "created", "as":  "created"},
+          {"name":  "created_by", "as":  "createdBy"},
+          {"name":  "description", "as":  "description"},
+          {"name":  "title", "as":  "title"},
+          {"name":  "last_modified", "as":  "lastModified"},
+          {"name":  "last_modified_by", "as":  "lastModifiedBy"}
+        ]
+      }
+    }
+  },
+  "secret": "vuJMeda8xNWRp8NN"
 }

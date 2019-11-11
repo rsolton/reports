@@ -5,6 +5,7 @@ describe('Reports', function() {
             const reportsService = require('../server-service-reports.js');
             reportsService.start();
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const response = await reportServiceInstance.getReports().then(function (reports) {
                 assert(Array.isArray(reports));
@@ -20,6 +21,7 @@ describe('Reports', function() {
             const reportsService = require('../server-service-reports.js');
             reportsService.start();
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
             const response = await reportServiceInstance.getReport(1).then(function (report) {
                 assert(typeof report === 'object');
                 assert.equal(report.id, 1);
@@ -34,6 +36,7 @@ describe('Reports', function() {
             const reportsService = require('../server-service-reports.js');
             reportsService.start();
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
             const invalidReportId = 999999999;
             const response = await reportServiceInstance.getReport(invalidReportId).then(function (report) {
                 assert(false);
@@ -56,10 +59,11 @@ describe('Reports', function() {
             };
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const response = await reportServiceInstance.createReport(newReport).then(function (report) {
                 assert(typeof report === 'object');
-                assert.equal(report.title, newReport.title);
+                assert(report.id);
             }).finally( () => {
                 reportsService.stop();
             });
@@ -77,6 +81,7 @@ describe('Reports', function() {
             };
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const response = await reportServiceInstance.createReport(newReport).then(function (report) {
 
@@ -100,11 +105,12 @@ describe('Reports', function() {
             };
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const reportId = 1;
             const response = await reportServiceInstance.modifyReport(reportId, modifiedReport).then(function (report) {
                 assert(typeof report === 'object');
-                assert.equal(report.title, modifiedReport.title);
+                assert.equal(report.affectedRows, 1);
             }).catch(function (error) {
                 assert(false);
             }).finally( () => {
@@ -123,6 +129,7 @@ describe('Reports', function() {
             };
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const reportId = 1;
             const response = await reportServiceInstance.modifyReport(reportId, modifiedReport).then(function (report) {
@@ -147,6 +154,7 @@ describe('Reports', function() {
             };
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const reportId = 9999999999;
             const response = await reportServiceInstance.modifyReport(reportId, modifiedReport).then(function (report) {
@@ -166,6 +174,7 @@ describe('Reports', function() {
             reportsService.start();
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const reportId = 1;
             const response = await reportServiceInstance.deleteReport(reportId).then(function (report) {
@@ -185,6 +194,7 @@ describe('Reports', function() {
             reportsService.start();
 
             const reportServiceInstance = reportsService.getReportServiceInstance();
+            reportServiceInstance.setMockResponse(true);
 
             const reportId = 9999999999;
             const response = await reportServiceInstance.deleteReport(reportId).then(function (report) {
